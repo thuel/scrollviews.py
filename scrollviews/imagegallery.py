@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
 from PIL import Image, ImageTk
+from scrollviews import VerticalScrollbarFrame
+import json
+
 
 class ImageGallery(tk.Tk):
     def __init__(self, image_paths):
@@ -24,9 +27,10 @@ class ImageGallery(tk.Tk):
 
     def setup_images(self, image_paths):
         for row, image in enumerate(image_paths):
+            p, tag = image
             self.image_frame.rowconfigure(row, weight=0)
             col = 0
-            load = Image.open(image)
+            load = Image.open(Path(p))
             load.thumbnail((200,200), Image.ANTIALIAS)
             photo = ImageTk.PhotoImage(load)
 
@@ -35,5 +39,36 @@ class ImageGallery(tk.Tk):
             image_lbl.grid(column=col, row=row, sticky='nesw')
             self.ims.append(image_lbl)
 
-            caption_lbl = ttk.Label(self.image_frame, text=image.name)
+            caption_lbl = ttk.Label(self.image_frame, text=tag)
             caption_lbl.grid(column=col+1, row=row, sticky='nesw')
+
+if __name__ == '__main__':
+
+    rel_files = Path("/home/lukas/git/sortphotos").rglob("*leute_tags*")
+
+    tagged_dict = {} # Dict mit path als key und Liste mit Tags als Value
+    for path in rel_files:
+        print(path.name) # Helps to detect mal formatted input data
+        fotos = json.loads(path.read_text())
+        for foto in fotos:
+            tagged_dict.update(foto)
+
+    one_tag_path_dict = {
+        key: value
+        for key, value in tagged_dict.items()
+        if len(value) == 1
+    }
+
+    rel_files = Path("/home/lukas/git/sortphotos").rglob("*oneperson*")
+    one_person_dict = {}
+    for path in rel_files:
+        print(path.name)
+        paths = json.loads(path.read_text())
+        one_person_dict.update({p: None for p in paths})
+
+    intersect = {key: value[0] for key, value in one_tag_path_dict.items() if key in one_person_dict}
+
+
+    app = ImageGallery(intersect.items())
+
+    app.mainloop()
