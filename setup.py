@@ -25,7 +25,7 @@ setup(name='scrollviews',
       zip_safe=False,
       entry_points={
         'console_scripts': [
-          'scrollviews = scrollviews.scrollviews:main'
+          #'scrollviews = scrollviews.scrollviews:main'
         ]
       },
       data_files=[
