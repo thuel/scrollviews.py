@@ -4,6 +4,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 from scrollviews import VerticalScrollbarFrame
 import json
+import dill
 
 
 class ImageGallery(tk.Tk):
@@ -16,31 +17,62 @@ class ImageGallery(tk.Tk):
         self.gallery_frame = VerticalScrollbarFrame(self)
         self.image_frame = self.gallery_frame.content_frame
 
-        self.geometry("800x600")
+        self.geometry("1200x900")
 
-        self.setup_images(self.images)
+        self.setup_gallery(self.images)
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.gallery_frame.grid(column=0, row=0, sticky='nesw')
         self.gallery_frame.on_configure()
 
-    def setup_images(self, image_paths):
-        for row, image in enumerate(image_paths):
-            p, tag = image
+    def setup_gallery(self, image_paths):
+        """
+        Fill the scroll canvas with a gallery raster of
+        cells.
+        """
+        col = 0
+        for row, image in enumerate(image_paths.items()):
+            if not (row % 4) == 0:
+                row -= col
+            path, caption = image
+            cell = self.setup_imagecell(self.image_frame, path, caption)
             self.image_frame.rowconfigure(row, weight=0)
-            col = 0
-            load = Image.open(Path(p))
-            load.thumbnail((200,200), Image.ANTIALIAS)
-            photo = ImageTk.PhotoImage(load)
 
-            image_lbl = ttk.Label(self.image_frame, image=photo)
-            image_lbl.image = photo
-            image_lbl.grid(column=col, row=row, sticky='nesw')
-            self.ims.append(image_lbl)
+            cell.grid(column=col, row=row, sticky='nesw')
+            if col == 0:
+                col = 1
+            elif col == 1:
+                col = 2
+            elif col == 2:
+                col = 3
+            else:
+                col = 0
 
-            caption_lbl = ttk.Label(self.image_frame, text=tag)
-            caption_lbl.grid(column=col+1, row=row, sticky='nesw')
+    def setup_imagecell(self, master, image_path, caption):
+        cell_frame = tk.Frame(master)
+        load = Image.open(Path(image_path))
+        load.thumbnail((200,200), Image.ANTIALIAS)
+        photo = ImageTk.PhotoImage(load)
+
+        image_lbl = ttk.Label(cell_frame, image=photo)
+        image_lbl.image = photo
+        image_lbl.grid(column=0, row=0, sticky='nesw')
+        self.ims.append(image_lbl)
+
+        caption_lbl = ttk.Label(cell_frame, text=caption)
+        caption_lbl.grid(column=0, row=1, sticky='nesw')
+
+        return cell_frame
+
+    def remove_from_storage(self):
+        pass
+
+    def readd_to_storage(self):
+        pass
+
+    def btn_label(self, master):
+        pass
 
 if __name__ == '__main__':
 
@@ -68,7 +100,13 @@ if __name__ == '__main__':
 
     intersect = {key: value[0] for key, value in one_tag_path_dict.items() if key in one_person_dict}
 
+    intersect_store = Path('/home/lukas/git/sortphotos/intersect.dill')
+    if intersect_store.exists():
+        intersect = dill.loads(intersect_store.read_bytes())
+    else:
+        intersect_store.write_bytes(dill.dumps(intersect))
 
-    app = ImageGallery(intersect.items())
+
+    app = ImageGallery(intersect)
 
     app.mainloop()
