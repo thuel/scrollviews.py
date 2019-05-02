@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='scrollviews',
-      version='0.2',
+      version='0.2.1',
       description='Description here...',
       long_description=readme(),
       url='',
@@ -19,7 +19,7 @@ setup(name='scrollviews',
         'logging'
       ],
       dependency_links=[
-          # e.g. "git+https://bitbucket.org/thuel/mail_py.git@0.2#egg=mail_py-0.2"
+          # e.g. "git+https://bitbucket.org/thuel/mail_py.git@0.2.2#egg=mail_py-0.2.2"
       ],
       packages=find_packages(),
       zip_safe=False,
